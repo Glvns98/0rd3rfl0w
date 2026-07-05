@@ -6,7 +6,7 @@
 
 @layer base {
   html {
-    zoom: 0.75;
+    font-size: 12px;
   }
   body {
     @apply bg-inst-bg text-inst-text-primary font-sans overflow-hidden antialiased;
