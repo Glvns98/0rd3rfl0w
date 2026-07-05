@@ -125,21 +125,30 @@ const LeftSidebar = () => {
   return (
     <div className="flex flex-col h-full bg-[#080C11] text-[11px] text-[#A0AAB5] border-r border-[#1A222C] font-sans w-72 shrink-0">
       
-      {/* 1. MARKET SELECTOR */}
+      {/* 1. MARKET SELECTOR (Searchable) */}
       <div className="h-12 border-b border-[#1A222C] flex items-center px-3 shrink-0 bg-[#06080A]">
-        <div className="relative w-full flex items-center bg-[#0A0E14] border border-[#1A222C] rounded p-1 hover:border-[#2D3748] transition-colors">
-          <select 
-            className="bg-transparent text-[#E4E8EE] text-[13px] font-bold tracking-wider outline-none w-full cursor-pointer appearance-none uppercase pl-2"
-            value={currentSymbol || 'BTC-USDT-SWAP'}
-            onChange={(e) => setSymbol(e.target.value)}
-          >
+        <div className="relative w-full flex items-center bg-[#0A0E14] border border-[#1A222C] rounded p-1 focus-within:border-[#2D3748] transition-colors">
+          <input 
+            type="text"
+            className="bg-transparent text-[#E4E8EE] text-[13px] font-bold tracking-wider outline-none w-full uppercase pl-2 placeholder-[#5A6B7C]"
+            placeholder="Search Symbol (e.g. SOL, PAXG)"
+            value={currentSymbol ? currentSymbol.replace('-SWAP', '') : ''}
+            onChange={(e) => {
+              const val = e.target.value.toUpperCase();
+              setSymbol(val + '-SWAP'); // Temporarily set it so input updates, backend will ignore if invalid
+            }}
+            onBlur={(e) => {
+              // If they delete everything, revert to BTC
+              if (!e.target.value) setSymbol('BTC-USDT-SWAP');
+            }}
+            list="symbols-list"
+          />
+          <datalist id="symbols-list">
             {(availableSymbols?.length > 0 ? availableSymbols : ['BTC-USDT-SWAP']).map(sym => (
-              <option key={sym} value={sym} className="bg-[#080C11] text-[#E4E8EE]">
-                {sym.replace('-SWAP', '')}
-              </option>
+              <option key={sym} value={sym.replace('-SWAP', '')} />
             ))}
-          </select>
-          <div className="text-[#5A6B7C] pointer-events-none pr-2">▼</div>
+          </datalist>
+          <div className="text-[#5A6B7C] pointer-events-none pr-2">🔍</div>
         </div>
       </div>
       
