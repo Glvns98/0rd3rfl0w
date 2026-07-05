@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, '../frontend/dist')));
 // API Routes can go here...
 
 // Catch-all route to serve the React app for any undefined routes (supports React Router)
-app.get('/(.*)', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
