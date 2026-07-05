@@ -1,0 +1,14 @@
+[build]
+  # Tell Netlify to enter the frontend directory
+  base = "frontend"
+  
+  # The build command for the React app
+  command = "npm run build"
+  
+  # The directory containing the built assets
+  publish = "dist"
+
+[build.environment]
+  # Netlify uses older Node versions by default sometimes, 
+  # enforcing a modern version ensures Vite works properly.
+  NODE_VERSION = "20"
