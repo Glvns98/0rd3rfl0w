@@ -44,11 +44,12 @@ export const DataProvider = ({ children }) => {
     let reconnectTimer;
 
     const connect = () => {
-      let envWsUrl = import.meta.env.VITE_WS_URL || '';
+      const defaultWsUrl = window.location.protocol === 'https:' ? `wss://${window.location.host}` : `ws://${window.location.host}`;
+      let envWsUrl = import.meta.env.VITE_WS_URL || defaultWsUrl;
       if (envWsUrl && !envWsUrl.startsWith('ws')) {
           envWsUrl = 'wss://' + envWsUrl;
       }
-      const wsUrl = envWsUrl || 'ws://localhost:3001';
+      const wsUrl = envWsUrl;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 

@@ -3,9 +3,21 @@ const cors = require('cors');
 const WebSocket = require('ws');
 const http = require('http');
 const https = require('https');
+const path = require('path');
 
 const app = express();
 app.use(cors());
+app.use(express.json());
+
+// Serve the compiled React static files
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// API Routes can go here...
+
+// Catch-all route to serve the React app for any undefined routes (supports React Router)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
