@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-inst-bg text-inst-text-primary font-sans overflow-hidden antialiased;
+  }
+}
+
+/* Custom Scrollbar for the entire app */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #081019;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E3147;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A0B5C8;
+}
