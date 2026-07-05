@@ -249,56 +249,70 @@ function initializeBackend() {
 }
 
 // --- OKX WEBSOCKET CONNECTION ---
-function connectOKX(symbols) {
-    console.log(`Connecting to OKX WebSocket and subscribing to ${symbols.length} pairs...`);
-    const ws = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
+let okxWsConnections = [];
 
-    ws.on('open', () => {
-        console.log("OKX Connected. Batch subscribing...");
+function connectOKX(symbols) {
+    // Clear old connections if reconnecting
+    okxWsConnections.forEach(ws => {
+        try { ws.terminate(); } catch (e) {}
+    });
+    okxWsConnections = [];
+
+    // OKX allows 400 subscriptions per connection. Each symbol needs 2 (trades, books).
+    // Max symbols per connection is 200. We will use 100 to be safe.
+    const SYMBOLS_PER_WS = 100;
+    
+    for (let i = 0; i < symbols.length; i += SYMBOLS_PER_WS) {
+        const symbolBatch = symbols.slice(i, i + SYMBOLS_PER_WS);
+        const ws = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
         
-        // Chunk subscriptions to avoid hitting max payload limits per message
-        const chunkSize = 50; // 50 pairs = 100 args per request (OKX max)
-        let delay = 0;
-        for (let i = 0; i < symbols.length; i += chunkSize) {
-            const chunk = symbols.slice(i, i + chunkSize);
+        ws.on('open', () => {
+            console.log(`OKX WS [${i/SYMBOLS_PER_WS}] Connected. Subscribing to ${symbolBatch.length} pairs...`);
             const args = [];
-            chunk.forEach(sym => {
+            symbolBatch.forEach(sym => {
                 args.push({ "channel": "trades", "instId": sym });
                 args.push({ "channel": "books", "instId": sym });
             });
-            setTimeout(() => {
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({ "op": "subscribe", "args": args }));
+            ws.send(JSON.stringify({ "op": "subscribe", "args": args }));
+        });
+
+        ws.on('message', (data) => {
+            try {
+                const msg = JSON.parse(data.toString());
+                if (msg.event === 'error') {
+                    console.error('OKX WS Error Message:', msg.msg);
+                    return;
                 }
-            }, delay);
-            delay += 250; // stagger requests by 250ms
-        }
-    });
+                if (msg.event === 'subscribe' || !msg.arg) return;
 
-    ws.on('message', (data) => {
-        try {
-            const msg = JSON.parse(data.toString());
-            if (msg.event === 'subscribe' || !msg.arg) return;
-
-            const instId = msg.arg.instId;
-            if (msg.arg.channel === 'trades' && msg.data) {
-                msg.data.forEach(trade => processTrade(trade, instId));
-            } else if (msg.arg.channel === 'books' && msg.data) {
-                processOrderbook(msg.data, msg.action, instId);
+                const instId = msg.arg.instId;
+                if (msg.arg.channel === 'trades' && msg.data) {
+                    msg.data.forEach(trade => processTrade(trade, instId));
+                } else if (msg.arg.channel === 'books' && msg.data) {
+                    processOrderbook(msg.data, msg.action, instId);
+                }
+            } catch (e) {
+                // console.error("Error parsing message");
             }
-        } catch (e) {
-            // console.error("Error parsing message");
-        }
-    });
+        });
 
-    ws.on('close', () => {
-        console.log("OKX WebSocket closed. Reconnecting...");
-        setTimeout(() => connectOKX(symbols), 3000);
-    });
-    ws.on('error', (err) => {
-        console.error("OKX WebSocket error:", err);
-        ws.close();
-    });
+        ws.on('close', () => {
+            console.log(`OKX WS [${i/SYMBOLS_PER_WS}] closed. Will reconnect...`);
+            // we will let the global reconnect handle it or implement a better one later
+            // but for now, just schedule a reconnect if this is the first one failing
+            if (okxWsConnections.length > 0) {
+                okxWsConnections = [];
+                setTimeout(() => connectOKX(symbols), 5000);
+            }
+        });
+
+        ws.on('error', (err) => {
+            console.error(`OKX WS [${i/SYMBOLS_PER_WS}] error:`, err.message);
+            ws.close();
+        });
+
+        okxWsConnections.push(ws);
+    }
 }
 
 // --- FRONTEND WEBSOCKET SERVER ---
