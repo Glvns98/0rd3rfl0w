@@ -1,0 +1,29 @@
+services:
+  # 1. Backend: Node.js Web Service
+  - type: web
+    name: 0rdrfl0w-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+
+  # 2. Frontend: React Static Site
+  - type: web
+    name: 0rdrfl0w-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_WS_URL
+        fromService:
+          type: web
+          name: 0rdrfl0w-backend
+          property: host
+        # Automatically format the host into a wss:// URL
+        # Render doesn't natively prefix wss:// via fromService, so we rely on the app logic or standard VITE_WS_URL format. 
+        # Actually, Render injects just the host (e.g. 0rdrfl0w-backend.onrender.com).
+        # We should modify the frontend to handle this correctly if it's missing wss://.
