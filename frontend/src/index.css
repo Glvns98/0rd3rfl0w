@@ -6,8 +6,7 @@
 
 @layer base {
   html {
-    /* Auto-adjust layout resolution: scales all rem-based Tailwind classes dynamically */
-    font-size: clamp(9px, 0.7vw, 13px);
+    zoom: 0.75;
   }
   body {
     @apply bg-inst-bg text-inst-text-primary font-sans overflow-hidden antialiased;
