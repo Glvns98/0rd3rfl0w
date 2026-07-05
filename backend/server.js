@@ -22,7 +22,7 @@ app.use((req, res) => {
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // --- TICK CONFIGURATION ---
 const CANDLE_INTERVAL_MS = 60000; // 1-minute candles
