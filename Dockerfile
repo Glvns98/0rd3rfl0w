@@ -13,6 +13,7 @@ COPY backend ./backend
 
 # Install dependencies for both and build the React frontend
 RUN npm install
+RUN npm run build
 
 # Hugging Face Spaces default port is 7860. We'll set it globally.
 ENV PORT=7860
